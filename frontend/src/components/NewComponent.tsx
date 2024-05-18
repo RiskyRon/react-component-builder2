@@ -1,111 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-const ScientificCalculator: React.FC = () => {
-    const [input, setInput] = useState<string>('');
+const SnakeGame: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
-    const handleButtonClick = (value: string) => {
-        setInput(input + value);
+  const canvasWidth = 400;
+  const canvasHeight = 400;
+  const snakeColor = '#00FF00';
+  const foodColor = '#FF0000';
+  const backgroundColor = '#333';
+  const snakeSize = 20;
+
+  const initialSnake = [{ x: 200, y: 200 }];
+  const initialFood = { x: 100, y: 100 };
+  const initialDirection = { x: 0, y: -snakeSize };
+
+  const [snake, setSnake] = useState(initialSnake);
+  const [food, setFood] = useState(initialFood);
+  const [direction, setDirection] = useState(initialDirection);
+
+  useEffect(() => {
+    const context = canvasRef.current?.getContext('2d');
+    if (context) {
+      context.fillStyle = backgroundColor;
+      context.fillRect(0, 0, canvasWidth, canvasHeight);
+      context.fillStyle = snakeColor;
+      snake.forEach(segment => context.fillRect(segment.x, segment.y, snakeSize, snakeSize));
+      context.fillStyle = foodColor;
+      context.fillRect(food.x, food.y, snakeSize, snakeSize);
+    }
+  }, [snake, food]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'ArrowUp':
+          if (direction.y === 0) setDirection({ x: 0, y: -snakeSize });
+          break;
+        case 'ArrowDown':
+          if (direction.y === 0) setDirection({ x: 0, y: snakeSize });
+          break;
+        case 'ArrowLeft':
+          if (direction.x === 0) setDirection({ x: -snakeSize, y: 0 });
+          break;
+        case 'ArrowRight':
+          if (direction.x === 0) setDirection({ x: snakeSize, y: 0 });
+          break;
+      }
     };
 
-    const handleClear = () => {
-        setInput('');
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [direction]);
+
+  useEffect(() => {
+    if (gameOver) return;
+
+    const moveSnake = () => {
+      const newSnake = [...snake];
+      const head = { x: newSnake[0].x + direction.x, y: newSnake[0].y + direction.y };
+
+      if (head.x >= canvasWidth || head.x < 0 || head.y >= canvasHeight || head.y < 0 || newSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        setGameOver(true);
+        return;
+      }
+
+      newSnake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        setScore(score + 1);
+        setFood({
+          x: Math.floor(Math.random() * (canvasWidth / snakeSize)) * snakeSize,
+          y: Math.floor(Math.random() * (canvasHeight / snakeSize)) * snakeSize,
+        });
+      } else {
+        newSnake.pop();
+      }
+
+      setSnake(newSnake);
     };
 
-    const handleCalculate = () => {
-        try {
-            // eslint-disable-next-line no-eval
-            const result = eval(input);
-            setInput(result.toString());
-        } catch (error) {
-            setInput('Error');
-        }
-    };
+    const interval = setInterval(moveSnake, 200);
+    return () => clearInterval(interval);
+  }, [snake, direction, food, gameOver]);
 
-    const handleScientificFunction = (func: string) => {
-        try {
-            const result = eval(`${func}(${input})`);
-            setInput(result.toString());
-        } catch (error) {
-            setInput('Error');
-        }
-    };
+  const resetGame = () => {
+    setSnake(initialSnake);
+    setFood(initialFood);
+    setDirection(initialDirection);
+    setScore(0);
+    setGameOver(false);
+  };
 
-    return (
-        <div style={styles.container}>
-            <div style={styles.display}>{input}</div>
-            <div style={styles.buttonRow}>
-                <button style={styles.button} onClick={() => handleButtonClick('1')}>1</button>
-                <button style={styles.button} onClick={() => handleButtonClick('2')}>2</button>
-                <button style={styles.button} onClick={() => handleButtonClick('3')}>3</button>
-                <button style={styles.button} onClick={() => handleButtonClick('+')}>+</button>
-            </div>
-            <div style={styles.buttonRow}>
-                <button style={styles.button} onClick={() => handleButtonClick('4')}>4</button>
-                <button style={styles.button} onClick={() => handleButtonClick('5')}>5</button>
-                <button style={styles.button} onClick={() => handleButtonClick('6')}>6</button>
-                <button style={styles.button} onClick={() => handleButtonClick('-')}>-</button>
-            </div>
-            <div style={styles.buttonRow}>
-                <button style={styles.button} onClick={() => handleButtonClick('7')}>7</button>
-                <button style={styles.button} onClick={() => handleButtonClick('8')}>8</button>
-                <button style={styles.button} onClick={() => handleButtonClick('9')}>9</button>
-                <button style={styles.button} onClick={() => handleButtonClick('*')}>*</button>
-            </div>
-            <div style={styles.buttonRow}>
-                <button style={styles.button} onClick={handleClear}>C</button>
-                <button style={styles.button} onClick={() => handleButtonClick('0')}>0</button>
-                <button style={styles.button} onClick={handleCalculate}>=</button>
-                <button style={styles.button} onClick={() => handleButtonClick('/')}>/</button>
-            </div>
-            <div style={styles.buttonRow}>
-                <button style={styles.button} onClick={() => handleScientificFunction('Math.sin')}>sin</button>
-                <button style={styles.button} onClick={() => handleScientificFunction('Math.cos')}>cos</button>
-                <button style={styles.button} onClick={() => handleScientificFunction('Math.tan')}>tan</button>
-            </div>
-        </div>
-    );
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: '#222', color: '#FFF', height: '100vh', justifyContent: 'center' }}>
+      <h1>Snake Game</h1>
+      <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight} style={{ border: '2px solid #FFF', borderRadius: '10px' }} />
+      <div style={{ marginTop: '20px' }}>
+        <span>Score: {score}</span>
+        {gameOver && <button onClick={resetGame} style={{ marginLeft: '20px', padding: '10px', borderRadius: '5px', backgroundColor: '#555', color: '#FFF', border: 'none' }}>Restart</button>}
+      </div>
+    </div>
+  );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '200px',
-        margin: '0 auto',
-        padding: '20px',
-        border: '1px solid #ccc',
-        borderRadius: '10px',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    },
-    display: {
-        width: '100%',
-        height: '40px',
-        marginBottom: '10px',
-        padding: '10px',
-        border: '1px solid #ccc',
-        borderRadius: '5px',
-        textAlign: 'right',
-        fontSize: '18px',
-        backgroundColor: '#f9f9f9',
-    },
-    buttonRow: {
-        display: 'flex',
-        width: '100%',
-        justifyContent: 'space-between',
-        marginBottom: '10px',
-    },
-    button: {
-        width: '45px',
-        height: '45px',
-        fontSize: '18px',
-        borderRadius: '5px',
-        border: '1px solid #ccc',
-        backgroundColor: '#fff',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s',
-    },
-};
-
-export default ScientificCalculator;
+export default SnakeGame;
