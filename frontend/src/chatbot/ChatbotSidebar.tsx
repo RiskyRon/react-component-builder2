@@ -3,41 +3,76 @@
 import React, { useState } from 'react';
 import Chatbot from './Chatbot';
 
-const ChatbotSidebar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true);
+interface ChatbotSidebarProps {
+  isOpen: boolean;
+  toggleSidebar: () => void;
+}
 
-  const toggleChatbot = () => {
-    setIsOpen(!isOpen);
+const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ isOpen, toggleSidebar }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
   };
 
   return (
     <>
       {isOpen && (
-            <div
-            className="fixed top-0 right-0 h-full bg-gray-800 shadow-lg border-l-2 border-gray-600 z-50 flex flex-col"
-            style={{ width: '350px' }}
-            >
+        <div
+          className={`fixed top-0 right-0 h-full bg-gray-800 shadow-lg border-l-2 border-gray-600 z-50 flex flex-col ${
+            isExpanded ? 'w-[794px]' : 'w-[350px]'
+          }`}
+        >
           <div className="flex justify-between items-center p-4">
             <h2 className="text-lg font-semibold text-white">Rons Web Builder</h2>
-            <button
-              onClick={toggleChatbot}
-              className="text-gray-400 hover:text-white focus:outline-none"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="w-6 h-6"
+            <div className="flex space-x-2">
+              <button
+                onClick={toggleExpand}
+                className="text-gray-400 hover:text-white focus:outline-none"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 4.5l-15 15M4.5 4.5l15 15"
-                />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  {isExpanded ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 4.5l-15 15M4.5 4.5l15 15"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 3v4.5m0 0H11.25M15.75 7.5l-9 9m0 0H3m3.75 0V11.25"
+                    />
+                  )}
+                </svg>
+              </button>
+              <button
+                onClick={toggleSidebar}
+                className="text-gray-400 hover:text-white focus:outline-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="flex-grow overflow-y-auto">
             <Chatbot />
@@ -46,7 +81,7 @@ const ChatbotSidebar: React.FC = () => {
       )}
       {!isOpen && (
         <button
-          onClick={toggleChatbot}
+          onClick={toggleSidebar}
           className="fixed top-4 right-4 z-50 p-2 bg-gray-800 text-white rounded-full shadow-lg focus:outline-none"
         >
           <svg
