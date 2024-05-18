@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-typescript';
+import 'ace-builds/src-noconflict/mode-jsx';
 import 'ace-builds/src-noconflict/theme-monokai';
+import 'ace-builds/src-noconflict/ext-language_tools';
+import 'ace-builds/src-noconflict/snippets/typescript';
+import 'ace-builds/src-noconflict/snippets/jsx';
 
 const filePath = '/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx';
 
@@ -118,6 +122,9 @@ const EditorPopup: React.FC = () => {
                   enableBasicAutocompletion: true,
                   enableLiveAutocompletion: true,
                   enableSnippets: true,
+                  tabSize: 2,
+                  wrap: true,
+                  indentedSoftWrap: false,
                 }}
               />
             </div>

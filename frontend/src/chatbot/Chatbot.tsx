@@ -72,7 +72,7 @@ const Chatbot: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           setModels(data.models);
-          setSelectedModel('gpt-3.5-turbo');
+          setSelectedModel('gpt-4o-2024-05-13');
         }
       } catch (error) {
         console.error('Error fetching models:', error);

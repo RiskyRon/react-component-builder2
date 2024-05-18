@@ -56,6 +56,7 @@ import React, { useState } from 'react';
 import { Modal } from './components/Modal';
 import { Preview } from './components/Preview';
 import ChatbotPopup from './chatbot/ChatbotPopup';
+import EditorPopup from './components/EditorPopup';
 import './index.css';
 
 const App: React.FC = () => {
@@ -74,6 +75,7 @@ const App: React.FC = () => {
       <Preview onElementClick={handleElementClick} />
       {selectedElement && <Modal element={selectedElement} closeModal={closeModal} />}
       <ChatbotPopup />
+      <EditorPopup />
     </div>
   );
 };
@@ -728,7 +730,7 @@ const Chatbot: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           setModels(data.models);
-          setSelectedModel('gpt-3.5-turbo');
+          setSelectedModel('gpt-4o-2024-05-13');
         }
       } catch (error) {
         console.error('Error fetching models:', error);
@@ -941,6 +943,179 @@ export const Preview: React.FC<PreviewProps> = ({ onElementClick }) => {
 ------------------------------------------------
 
 ------------------------------------------------
+#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/EditorPopup.tsx
+
+import React, { useState, useEffect } from 'react';
+import { Rnd } from 'react-rnd';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-typescript';
+import 'ace-builds/src-noconflict/mode-jsx';
+import 'ace-builds/src-noconflict/theme-monokai';
+import 'ace-builds/src-noconflict/ext-language_tools';
+import 'ace-builds/src-noconflict/snippets/typescript';
+import 'ace-builds/src-noconflict/snippets/jsx';
+
+const filePath = '/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx';
+
+const EditorPopup: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [content, setContent] = useState('');
+  const [size, setSize] = useState({ width: 500, height: 600 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (isOpen) {
+      setSize({ width: 500, height: 600 });
+      setPosition({
+        x: window.innerWidth - 1040,
+        y: window.innerHeight - 620,
+      });
+      fetchContent();
+    }
+  }, [isOpen]);
+
+  const fetchContent = async () => {
+    try {
+      const response = await fetch(`http://localhost:8010/file?path=${encodeURIComponent(filePath)}`);
+      if (response.ok) {
+        const data = await response.text();
+        setContent(data);
+      }
+    } catch (error) {
+      console.error('Error fetching file content:', error);
+    }
+  };
+
+  const saveContent = async () => {
+    try {
+      const response = await fetch('http://localhost:8010/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path: filePath, content }),
+      });
+      if (response.ok) {
+        alert('File saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving file content:', error);
+    }
+  };
+
+  const toggleEditor = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <>
+      {isOpen ? (
+        <Rnd
+          size={size}
+          position={position}
+          onResize={(e, direction, ref, delta, position) => {
+            setSize({
+              width: ref.offsetWidth,
+              height: ref.offsetHeight,
+            });
+          }}
+          onDragStop={(e, d) => {
+            setPosition({ x: d.x, y: d.y });
+          }}
+          minWidth={400}
+          minHeight={500}
+          maxWidth={800}
+          maxHeight={1000}
+          bounds="window"
+          className="fixed z-50 bg-gray-800 rounded-lg shadow-lg border-2 border-gray-600"
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex justify-between items-center p-4">
+              <h2 className="text-lg font-semibold text-white">Editor</h2>
+              <button
+                onClick={toggleEditor}
+                className="text-gray-400 hover:text-white focus:outline-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m4.5 4.5 15 15m0 0V8.25m0 11.25H8.25"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-grow overflow-y-auto">
+              <AceEditor
+                mode="typescript"
+                theme="monokai"
+                name="editor"
+                width="100%"
+                height="100%"
+                value={content}
+                onChange={setContent}
+                fontSize={14}
+                showPrintMargin={true}
+                showGutter={true}
+                highlightActiveLine={true}
+                setOptions={{
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: true,
+                  enableSnippets: true,
+                  tabSize: 2,
+                  wrap: true,
+                  indentedSoftWrap: false,
+                }}
+              />
+            </div>
+            <div className="p-4">
+              <button
+                onClick={saveContent}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </Rnd>
+      ) : (
+        <button
+          onClick={toggleEditor}
+          className="fixed bottom-20 right-4 z-50 p-2 bg-gray-800 text-white rounded-full shadow-lg focus:outline-none"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-12 h-12"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5.25 3.75v-1.5A1.5 1.5 0 006.75 0h10.5a1.5 1.5 0 011.5 1.5v1.5M9 3h6m-8.25 6.75H2.25m19.5 0H15.75m-3 10.5h-6m9 0h1.5a1.5 1.5 0 001.5-1.5v-1.5m-12 0v1.5a1.5 1.5 0 001.5 1.5h1.5M4.5 10.5v12h15v-12h-15z"
+            />
+          </svg>
+        </button>
+      )}
+    </>
+  );
+};
+
+export default EditorPopup;
+
+
+------------------------------------------------
+
+------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/Modal.tsx
 
 import React from 'react';
@@ -973,31 +1148,64 @@ export const Modal: React.FC<ModalProps> = ({ element, closeModal }) => {
 ------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx
 
-import React, { useState } from 'react';
+import React from 'react';
 
-const FastCarSelector = () => {
-  const [selectedCar, setSelectedCar] = useState('');
-
-  const handleSelect = (e) => {
-    setSelectedCar(e.target.value);
-  };
-
+const LoginSignUp: React.FC = () => {
   return (
-    <div>
-      <h2>Select a Fast Car:</h2>
-      <select value={selectedCar} onChange={handleSelect}>
-        <option value=''>Select a car</option>
-        <option value='Ferrari'>Ferrari</option>
-        <option value='Lamborghini'>Lamborghini</option>
-        <option value='Porsche'>Porsche</option>
-        <option value='McLaren'>McLaren</option>
-      </select>
-      {selectedCar && <p>You selected: {selectedCar}</p>}
+    <div style={styles.container}>
+      <div style={styles.formContainer}>
+        <h2 style={styles.title}>Login / Sign Up</h2>
+        <button style={{ ...styles.button, ...styles.googleButton }}>Continue with Google</button>
+        <button style={{ ...styles.button, ...styles.microsoftButton }}>Continue with Microsoft</button>
+        <button style={{ ...styles.button, ...styles.appleButton }}>Continue with Apple</button>
+      </div>
     </div>
   );
 };
 
-export default FastCarSelector;
+const styles = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#121212',
+  },
+  formContainer: {
+    backgroundColor: '#1e1e1e',
+    padding: '2rem',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+    textAlign: 'center' as 'center',
+  },
+  title: {
+    color: '#fff',
+    marginBottom: '1.5rem',
+  },
+  button: {
+    width: '100%',
+    padding: '0.75rem',
+    margin: '0.5rem 0',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+  },
+  googleButton: {
+    backgroundColor: '#db4437',
+    color: '#fff',
+  },
+  microsoftButton: {
+    backgroundColor: '#0078d4',
+    color: '#fff',
+  },
+  appleButton: {
+    backgroundColor: '#000',
+    color: '#fff',
+  },
+};
+
+export default LoginSignUp;
 
 
 ------------------------------------------------
@@ -1005,7 +1213,6 @@ export default FastCarSelector;
 ------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/backend/app.py
 
-# backend/app.py
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -1018,6 +1225,7 @@ from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
 import uuid
+import os
 
 app = FastAPI()
 
@@ -1037,14 +1245,13 @@ class ChatRequest(BaseModel):
     model_id: str
     selected_tools: list = []
 
+class FileSaveRequest(BaseModel):
+    path: str
+    content: str
+
 # Initialize Redis Chat History
 redis_url = "redis://localhost:6379/0"
 message_history = RedisChatMessageHistory(url=redis_url, ttl=3600, session_id="global-session")
-
-
-
-
-
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -1096,6 +1303,23 @@ async def get_models():
 @app.get("/tools")
 async def get_tools():
     return {"tools": [tool.name for tool in tools]}
+
+@app.get("/file")
+async def get_file(path: str):
+    try:
+        with open(path, 'r') as file:
+            return file.read()
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/save")
+async def save_file(request: FileSaveRequest):
+    try:
+        with open(request.path, 'w') as file:
+            file.write(request.content)
+        return {"status": "success"}
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
@@ -1226,8 +1450,9 @@ def create_chat_prompt():
 
                 Always ensure that:
                 1. The component code is valid and complete.
-
                 2. The saved content should correctly represent the component, including any necessary imports, state management, and styling.
+                3. You cannot import any components or files. For example, if css is required, it should be included in the component file.
+
                 '''
             ),
             MessagesPlaceholder(variable_name=MEMORY_KEY),

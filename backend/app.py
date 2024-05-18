@@ -30,6 +30,10 @@ class ChatRequest(BaseModel):
     model_id: str
     selected_tools: list = []
 
+class FileSaveRequest(BaseModel):
+    path: str
+    content: str
+
 # Initialize Redis Chat History
 redis_url = "redis://localhost:6379/0"
 message_history = RedisChatMessageHistory(url=redis_url, ttl=3600, session_id="global-session")
@@ -66,6 +70,7 @@ async def chat(request: ChatRequest):
         "chat_history": chat_history.messages,
     }
 
+
 @app.get("/models")
 async def get_models():
     return {
@@ -84,10 +89,6 @@ async def get_models():
 @app.get("/tools")
 async def get_tools():
     return {"tools": [tool.name for tool in tools]}
-
-class FileSaveRequest(BaseModel):
-    path: str
-    content: str
 
 @app.get("/file")
 async def get_file(path: str):

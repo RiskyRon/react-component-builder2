@@ -17,8 +17,9 @@ def create_chat_prompt():
 
                 Always ensure that:
                 1. The component code is valid and complete.
-
                 2. The saved content should correctly represent the component, including any necessary imports, state management, and styling.
+                3. You cannot import any components or files. For example, if css is required, it should be included in the component file.
+                4. Show the user the saved content in the response.
                 '''
             ),
             MessagesPlaceholder(variable_name=MEMORY_KEY),

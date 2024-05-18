@@ -10,7 +10,7 @@ def add_component_to_preview(content: str) -> str:
         content (str): The content to save.
     
     Returns:
-        str: A message indicating the result of the operation.
+        str: The content of the saved file.
     """
     file_path = '/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx'
     
@@ -19,8 +19,9 @@ def add_component_to_preview(content: str) -> str:
         with open(file_path, 'w') as file:
             file.write(content)
         
-        # Note: Vite's HMR will automatically detect the file change and reload the preview area.
+        with open(file_path, 'r') as file:
+            saved_content = file.read()
         
-        return f'Content saved to {file_path}. The preview should reload automatically.'
+        return f'Content saved to {file_path}. The preview should reload automatically.\n\nSaved Content:\n{saved_content}'
     except Exception as e:
         return f'Error saving content: {str(e)}'

@@ -1,25 +1,40 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const FastCarSelector = () => {
-  const [selectedCar, setSelectedCar] = useState('');
-
-  const handleSelect = (e) => {
-    setSelectedCar(e.target.value);
-  };
-
+const LoadingScreen: React.FC = () => {
   return (
-    <div>
-      <h2>Select a Fast Car:</h2>
-      <select value={selectedCar} onChange={handleSelect}>
-        <option value=''>Select a car</option>
-        <option value='Ferrari'>Ferrari</option>
-        <option value='Lamborghini'>Lamborghini</option>
-        <option value='Porsche'>Porsche</option>
-        <option value='McLaren'>McLaren</option>
-      </select>
-      {selectedCar && <p>You selected: {selectedCar}</p>}
+    <div style={styles.container}>
+      <div style={styles.loader}></div>
+      <h2 style={styles.text}>Loading...</h2>
     </div>
   );
 };
 
-export default FastCarSelector;
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    backgroundColor: '#282c34',
+    color: 'white',
+  },
+  loader: {
+    border: '16px solid #f3f3f3',
+    borderRadius: '50%',
+    borderTop: '16px solid #3498db',
+    width: '120px',
+    height: '120px',
+    animation: 'spin 2s linear infinite',
+  },
+  text: {
+    marginTop: '20px',
+    fontSize: '1.5em',
+  },
+  '@keyframes spin': {
+    '0%': { transform: 'rotate(0deg)' },
+    '100%': { transform: 'rotate(360deg)' },
+  },
+};
+
+export default LoadingScreen;
