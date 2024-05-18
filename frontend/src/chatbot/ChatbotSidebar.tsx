@@ -42,13 +42,13 @@ const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ isOpen, toggleSidebar }
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M19.5 4.5l-15 15M4.5 4.5l15 15"
+                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
                     />
                   ) : (
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M15.75 3v4.5m0 0H11.25M15.75 7.5l-9 9m0 0H3m3.75 0V11.25"
+                      d="M15.75 19.5L8.25 12l7.5-7.5"
                     />
                   )}
                 </svg>
@@ -68,7 +68,7 @@ const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ isOpen, toggleSidebar }
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
                   />
                 </svg>
               </button>
@@ -95,7 +95,7 @@ const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ isOpen, toggleSidebar }
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M4.5 19.5l15-15M19.5 4.5l-15 15"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
             />
           </svg>
         </button>

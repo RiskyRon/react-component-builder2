@@ -61,10 +61,10 @@ import './index.css';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false); // Ensure this state is defined
 
   const handleElementClick = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
-    setSelectedElement(event.currentTarget);
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -955,51 +955,54 @@ export const Preview: React.FC<PreviewProps> = ({ onElementClick }) => {
 
 import React from 'react';
 
-const Navbar: React.FC = () => {
+interface UserCardProps {
+  name: string;
+  bio: string;
+  profilePicture: string;
+}
+
+const UserCard: React.FC<UserCardProps> = ({ name, bio, profilePicture }) => {
+  const cardStyle: React.CSSProperties = {
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    padding: '16px',
+    maxWidth: '300px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    textAlign: 'center',
+    fontFamily: 'Arial, sans-serif',
+    backgroundColor: '#fff',
+  };
+
+  const profilePictureStyle: React.CSSProperties = {
+    borderRadius: '50%',
+    width: '100px',
+    height: '100px',
+    objectFit: 'cover',
+    marginBottom: '16px',
+  };
+
+  const nameStyle: React.CSSProperties = {
+    fontSize: '1.5em',
+    margin: '0 0 8px 0',
+    color: '#333',
+  };
+
+  const bioStyle: React.CSSProperties = {
+    fontSize: '1em',
+    margin: '0',
+    color: '#666',
+  };
+
   return (
-    <nav style={styles.navbar}>
-      <div style={styles.logo}>MusicFest</div>
-      <ul style={styles.navLinks}>
-        <li style={styles.navItem}><a style={styles.navLink} href="#home">Home</a></li>
-        <li style={styles.navItem}><a style={styles.navLink} href="#lineup">Lineup</a></li>
-        <li style={styles.navItem}><a style={styles.navLink} href="#tickets">Tickets</a></li>
-        <li style={styles.navItem}><a style={styles.navLink} href="#about">About</a></li>
-        <li style={styles.navItem}><a style={styles.navLink} href="#contact">Contact</a></li>
-      </ul>
-    </nav>
+    <div style={cardStyle}>
+      <img src={profilePicture} alt={`${name}'s profile`} style={profilePictureStyle} />
+      <h2 style={nameStyle}>{name}</h2>
+      <p style={bioStyle}>{bio}</p>
+    </div>
   );
 };
 
-const styles = {
-  navbar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '10px 20px',
-    backgroundColor: '#333',
-    color: '#fff',
-  },
-  logo: {
-    fontSize: '1.5em',
-    fontWeight: 'bold',
-  },
-  navLinks: {
-    listStyle: 'none',
-    display: 'flex',
-    margin: 0,
-    padding: 0,
-  },
-  navItem: {
-    marginLeft: '20px',
-  },
-  navLink: {
-    color: '#fff',
-    textDecoration: 'none',
-    fontSize: '1em',
-  },
-};
-
-export default Navbar;
+export default UserCard;
 
 
 ------------------------------------------------
