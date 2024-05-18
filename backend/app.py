@@ -3,14 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain.agents import AgentExecutor
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_community.chat_message_histories import RedisChatMessageHistory
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain.memory import ConversationBufferMemory
 from agents.create_agent import create_tools_agent
 from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
-import uuid
-import os
 
 app = FastAPI()
 
@@ -34,9 +31,8 @@ class FileSaveRequest(BaseModel):
     path: str
     content: str
 
-# Initialize Redis Chat History
-redis_url = "redis://localhost:6379/0"
-message_history = RedisChatMessageHistory(url=redis_url, ttl=3600, session_id="global-session")
+# Initialize Conversation Buffer Memory
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -44,32 +40,28 @@ async def chat(request: ChatRequest):
     model_id = request.model_id
     selected_tools = request.selected_tools
 
-    # Generate a unique session_id for the new conversation
-    session_id = str(uuid.uuid4())
-
-    # Create a new session for each conversation
-    chat_history = RedisChatMessageHistory(session_id=session_id)
+    # Use Langchain memory for conversation history
+    memory_variables = memory.load_memory_variables({})
+    chat_history = memory_variables.get("chat_history", [])
 
     llm = get_model(model_id)
-    filtered_tools = [tool for tool in tools if tool.name in request.selected_tools]
+    filtered_tools = [tool for tool in tools if tool.name in selected_tools]
     llm_with_tools = llm.bind_tools(filtered_tools)
     agent = create_tools_agent(prompt, llm_with_tools)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    # Convert RedisChatMessageHistory to a list of BaseMessage objects
-    base_messages = [m for m in chat_history.messages if isinstance(m, BaseMessage)]
-
-    result = agent_executor.invoke({"input": user_input, "chat_history": base_messages})
+    result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
 
     # Save the conversation in the session
-    chat_history.add_user_message(user_input)
-    chat_history.add_ai_message(result["output"])
+    memory.save_context(
+        {"input": user_input},
+        {"output": result["output"]}
+    )
 
     return {
         "output": result["output"],
-        "chat_history": chat_history.messages,
+        "chat_history": memory.load_memory_variables({}).get("chat_history", []),
     }
-
 
 @app.get("/models")
 async def get_models():
