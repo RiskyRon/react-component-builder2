@@ -1,50 +1,28 @@
 import React from 'react';
 
-interface UserCardProps {
-  name: string;
-  bio: string;
-  profilePicture: string;
-}
-
-const UserCard: React.FC<UserCardProps> = ({ name, bio, profilePicture }) => {
-  const cardStyle: React.CSSProperties = {
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    padding: '16px',
-    maxWidth: '300px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center',
-    fontFamily: 'Arial, sans-serif',
-    backgroundColor: '#fff',
-  };
-
-  const profilePictureStyle: React.CSSProperties = {
-    borderRadius: '50%',
-    width: '100px',
-    height: '100px',
-    objectFit: 'cover',
-    marginBottom: '16px',
-  };
-
-  const nameStyle: React.CSSProperties = {
-    fontSize: '1.5em',
-    margin: '0 0 8px 0',
-    color: '#333',
-  };
-
-  const bioStyle: React.CSSProperties = {
-    fontSize: '1em',
-    margin: '0',
-    color: '#666',
-  };
-
+const LandingPage: React.FC = () => {
   return (
-    <div style={cardStyle}>
-      <img src={profilePicture} alt={`${name}'s profile`} style={profilePictureStyle} />
-      <h2 style={nameStyle}>{name}</h2>
-      <p style={bioStyle}>{bio}</p>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
+      <header className="w-full py-6 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-center">
+        <h1 className="text-4xl font-bold">Neon Glow Sticks</h1>
+        <p className="mt-2 text-lg">Light up your festival with our bulk neon glow sticks!</p>
+      </header>
+      <main className="flex-1 flex flex-col items-center justify-center px-4">
+        <section className="text-center">
+          <h2 className="text-3xl font-semibold mb-4">Why Choose Our Glow Sticks?</h2>
+          <p className="mb-6 max-w-2xl">
+            Our neon glow sticks are perfect for any festival, party, or event. They are bright, long-lasting, and come in a variety of vibrant colors. Make your night unforgettable with our high-quality glow sticks.
+          </p>
+          <button className="px-6 py-3 bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 rounded-full text-lg font-medium hover:opacity-90 transition-opacity">
+            Shop Now
+          </button>
+        </section>
+      </main>
+      <footer className="w-full py-4 bg-gray-800 text-center">
+        <p>&copy; 2023 Neon Glow Sticks. All rights reserved.</p>
+      </footer>
     </div>
   );
 };
 
-export default UserCard;
+export default LandingPage;
