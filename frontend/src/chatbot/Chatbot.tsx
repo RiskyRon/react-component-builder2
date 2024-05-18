@@ -128,7 +128,7 @@ const Chatbot: React.FC = () => {
       <div className="flex-grow overflow-y-auto">
         <ChatContainer messages={messages} isThinking={isThinking} />
       </div>
-      <div className="mt-4">
+      <div className="sticky bottom-0 bg-gray-800">
         <ChatForm
           inputValue={inputValue}
           setInputValue={setInputValue}

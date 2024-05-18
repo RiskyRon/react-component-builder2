@@ -1,8 +1,8 @@
+// frontend/src/App.tsx
+
 import React, { useState } from 'react';
-import { Modal } from './components/Modal';
 import { Preview } from './components/Preview';
-import ChatbotPopup from './chatbot/ChatbotPopup';
-import EditorPopup from './components/EditorPopup';
+import ChatbotSidebar from './chatbot/ChatbotSidebar';
 import './index.css';
 
 const App: React.FC = () => {
@@ -13,17 +13,14 @@ const App: React.FC = () => {
     setSelectedElement(event.currentTarget);
   };
 
-  const closeModal = () => setSelectedElement(null);
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 p-4">
       <h1 className="text-2xl text-gray-300 font-bold mb-4">React Component Generator</h1>
       <Preview onElementClick={handleElementClick} />
-      {selectedElement && <Modal element={selectedElement} closeModal={closeModal} />}
-      <ChatbotPopup />
-      <EditorPopup />
+      <ChatbotSidebar />
     </div>
   );
 };
 
 export default App;
+

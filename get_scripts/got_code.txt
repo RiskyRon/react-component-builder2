@@ -1150,62 +1150,44 @@ export const Modal: React.FC<ModalProps> = ({ element, closeModal }) => {
 
 import React from 'react';
 
-const LoginSignUp: React.FC = () => {
+const LoadingScreen: React.FC = () => {
   return (
     <div style={styles.container}>
-      <div style={styles.formContainer}>
-        <h2 style={styles.title}>Login / Sign Up</h2>
-        <button style={{ ...styles.button, ...styles.googleButton }}>Continue with Google</button>
-        <button style={{ ...styles.button, ...styles.microsoftButton }}>Continue with Microsoft</button>
-        <button style={{ ...styles.button, ...styles.appleButton }}>Continue with Apple</button>
-      </div>
+      <div style={styles.loader}></div>
+      <h2 style={styles.text}>Loading...</h2>
     </div>
   );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: 'flex',
-    justifyContent: 'center',
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     height: '100vh',
-    backgroundColor: '#121212',
+    backgroundColor: '#282c34',
+    color: 'white',
   },
-  formContainer: {
-    backgroundColor: '#1e1e1e',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-    textAlign: 'center' as 'center',
+  loader: {
+    border: '16px solid #f3f3f3',
+    borderRadius: '50%',
+    borderTop: '16px solid #3498db',
+    width: '120px',
+    height: '120px',
+    animation: 'spin 2s linear infinite',
   },
-  title: {
-    color: '#fff',
-    marginBottom: '1.5rem',
+  text: {
+    marginTop: '20px',
+    fontSize: '1.5em',
   },
-  button: {
-    width: '100%',
-    padding: '0.75rem',
-    margin: '0.5rem 0',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  },
-  googleButton: {
-    backgroundColor: '#db4437',
-    color: '#fff',
-  },
-  microsoftButton: {
-    backgroundColor: '#0078d4',
-    color: '#fff',
-  },
-  appleButton: {
-    backgroundColor: '#000',
-    color: '#fff',
+  '@keyframes spin': {
+    '0%': { transform: 'rotate(0deg)' },
+    '100%': { transform: 'rotate(360deg)' },
   },
 };
 
-export default LoginSignUp;
+export default LoadingScreen;
 
 
 ------------------------------------------------
@@ -1285,6 +1267,7 @@ async def chat(request: ChatRequest):
         "chat_history": chat_history.messages,
     }
 
+
 @app.get("/models")
 async def get_models():
     return {
@@ -1343,7 +1326,7 @@ def add_component_to_preview(content: str) -> str:
         content (str): The content to save.
     
     Returns:
-        str: A message indicating the result of the operation.
+        str: The content of the saved file.
     """
     file_path = '/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx'
     
@@ -1352,9 +1335,10 @@ def add_component_to_preview(content: str) -> str:
         with open(file_path, 'w') as file:
             file.write(content)
         
-        # Note: Vite's HMR will automatically detect the file change and reload the preview area.
+        with open(file_path, 'r') as file:
+            saved_content = file.read()
         
-        return f'Content saved to {file_path}. The preview should reload automatically.'
+        return f'Content saved to {file_path}. The preview should reload automatically.\n\nSaved Content:\n{saved_content}'
     except Exception as e:
         return f'Error saving content: {str(e)}'
 
@@ -1452,7 +1436,7 @@ def create_chat_prompt():
                 1. The component code is valid and complete.
                 2. The saved content should correctly represent the component, including any necessary imports, state management, and styling.
                 3. You cannot import any components or files. For example, if css is required, it should be included in the component file.
-
+                4. Show the user the saved content in the response.
                 '''
             ),
             MessagesPlaceholder(variable_name=MEMORY_KEY),
