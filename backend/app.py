@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Request
+# /Users/ron/Documents/projects/vite element highlighter/backend/app.py
+
+from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain.agents import AgentExecutor
@@ -8,6 +10,9 @@ from agents.create_agent import create_tools_agent
 from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
+from utils.sqlite_handler import SQLiteDBHandler
+import os
+import uuid
 
 app = FastAPI()
 
@@ -22,6 +27,7 @@ app.add_middleware(
 prompt = create_chat_prompt()
 
 class ChatRequest(BaseModel):
+    session_id: str = None
     input: str
     chat_history: list = []
     model_id: str
@@ -31,37 +37,45 @@ class FileSaveRequest(BaseModel):
     path: str
     content: str
 
+# Initialize SQLiteDBHandler
+db_path = os.environ.get('SQLITE_DB_PATH', 'chat_history.db')
+sqlite_db = SQLiteDBHandler(db_path)
+
 # Initialize Conversation Buffer Memory
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
+    session_id = request.session_id or str(uuid.uuid4())
     user_input = request.input
     model_id = request.model_id
     selected_tools = request.selected_tools
 
-    # Use Langchain memory for conversation history
-    memory_variables = memory.load_memory_variables({})
-    chat_history = memory_variables.get("chat_history", [])
+    # Load chat history from SQLiteDB
+    chat_history = sqlite_db.get_chat_history(session_id)
 
     llm = get_model(model_id)
     filtered_tools = [tool for tool in tools if tool.name in selected_tools]
+    
+    # Ensure there is at least one tool
+    if not filtered_tools:
+        filtered_tools = tools  # or select some default tools
+
     llm_with_tools = llm.bind_tools(filtered_tools)
     agent = create_tools_agent(prompt, llm_with_tools)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
     result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
 
-    # Save the conversation in the session
-    memory.save_context(
-        {"input": user_input},
-        {"output": result["output"]}
-    )
+    # Save the conversation in SQLiteDB
+    sqlite_db.save_chat_history(session_id, user_input, result["output"])
 
     return {
         "output": result["output"],
-        "chat_history": memory.load_memory_variables({}).get("chat_history", []),
+        "chat_history": sqlite_db.get_chat_history(session_id),
+        "session_id": session_id  # Return the session_id to the client
     }
+
 
 @app.get("/models")
 async def get_models():
@@ -98,6 +112,12 @@ async def save_file(request: FileSaveRequest):
         return {"status": "success"}
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/chat/history")
+async def get_chat_history(session_id: str = Query(None)):
+    if session_id:
+        return {"chat_history": sqlite_db.get_chat_history(session_id)}
+    return {"chat_history": []}
 
 if __name__ == "__main__":
     import uvicorn

@@ -1059,72 +1059,58 @@ export const Preview: React.FC<PreviewProps> = ({ onElementClick }) => {
 ------------------------------------------------
 
 ------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx
+#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/HotWrapper.tsx
 
-import React from 'react';
-import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement, ArcElement } from 'chart.js';
+import React, { useState, useEffect } from 'react';
+import HotWrapper from './HotWrapper';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement
-);
+interface PreviewProps {
+  onElementClick: (event: React.MouseEvent<HTMLElement>) => void;
+}
 
-const data = {
-  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-  datasets: [
-    {
-      label: 'Dataset 1',
-      data: [65, 59, 80, 81, 56, 55, 40],
-      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      borderColor: 'rgba(75, 192, 192, 1)',
-      borderWidth: 1,
-    },
-  ],
-};
+export const Preview: React.FC<PreviewProps> = ({ onElementClick }) => {
+  const [key, setKey] = useState(0);
 
-const pieData = {
-  labels: ['Red', 'Blue', 'Yellow'],
-  datasets: [
-    {
-      data: [300, 50, 100],
-      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-      hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-    },
-  ],
-};
+  useEffect(() => {
+    if (import.meta.hot) {
+      import.meta.hot.accept('./NewComponent.tsx', () => {
+        setKey((prevKey) => prevKey + 1);
+      });
+    }
+  }, []);
 
-const Graphs: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Bar Chart</h2>
-        <Bar data={data} />
-      </div>
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Line Chart</h2>
-        <Line data={data} />
-      </div>
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Pie Chart</h2>
-        <Pie data={pieData} />
-      </div>
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Doughnut Chart</h2>
-        <Doughnut data={pieData} />
-      </div>
+    <div className="bg-gray-800 p-0 rounded-md w-full" onClick={onElementClick}>
+      <HotWrapper key={key} />
     </div>
   );
 };
 
-export default Graphs;
+
+------------------------------------------------
+
+------------------------------------------------
+#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx
+
+import React from 'react';
+
+interface YellowButtonProps {
+  text: string;
+  onClick: () => void;
+}
+
+const YellowButton: React.FC<YellowButtonProps> = ({ text, onClick }) => {
+  return (
+    <button
+      className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
+      onClick={onClick}
+    >
+      {text}
+    </button>
+  );
+};
+
+export default YellowButton;
 
 
 ------------------------------------------------
@@ -1301,6 +1287,8 @@ export default Graphs;
 ------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/backend/app.py
 
+# /Users/ron/Documents/projects/vite element highlighter/backend/app.py
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -1311,6 +1299,9 @@ from agents.create_agent import create_tools_agent
 from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
+from utils.sqlite_handler import SQLiteDBHandler
+import os
+import uuid
 
 app = FastAPI()
 
@@ -1325,6 +1316,7 @@ app.add_middleware(
 prompt = create_chat_prompt()
 
 class ChatRequest(BaseModel):
+    session_id: str = None
     input: str
     chat_history: list = []
     model_id: str
@@ -1334,18 +1326,22 @@ class FileSaveRequest(BaseModel):
     path: str
     content: str
 
+# Initialize SQLiteDBHandler
+db_path = os.environ.get('SQLITE_DB_PATH', 'chat_history.db')
+sqlite_db = SQLiteDBHandler(db_path)
+
 # Initialize Conversation Buffer Memory
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
+    session_id = request.session_id or str(uuid.uuid4())
     user_input = request.input
     model_id = request.model_id
     selected_tools = request.selected_tools
 
-    # Use Langchain memory for conversation history
-    memory_variables = memory.load_memory_variables({})
-    chat_history = memory_variables.get("chat_history", [])
+    # Load chat history from SQLiteDB
+    chat_history = sqlite_db.get_chat_history(session_id)
 
     llm = get_model(model_id)
     filtered_tools = [tool for tool in tools if tool.name in selected_tools]
@@ -1355,15 +1351,13 @@ async def chat(request: ChatRequest):
 
     result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
 
-    # Save the conversation in the session
-    memory.save_context(
-        {"input": user_input},
-        {"output": result["output"]}
-    )
+    # Save the conversation in SQLiteDB
+    sqlite_db.save_chat_history(session_id, user_input, result["output"])
 
     return {
         "output": result["output"],
-        "chat_history": memory.load_memory_variables({}).get("chat_history", []),
+        "chat_history": sqlite_db.get_chat_history(session_id),
+        "session_id": session_id  # Return the session_id to the client
     }
 
 @app.get("/models")
@@ -1503,6 +1497,63 @@ tools = [add_component_to_preview, tavily_search]
 ------------------------------------------------
 
 ------------------------------------------------
+#/Users/ron/Documents/projects/vite element highlighter/backend/utils/sqlite_handler.py
+
+# /Users/ron/Documents/projects/vite element highlighter/backend/utils/sqlite_handler.py
+
+import sqlite3
+import os
+
+class SQLiteDBHandler:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self._create_table()
+
+    def _create_table(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS chat_history (
+                    session_id TEXT,
+                    user_input TEXT,
+                    assistant_output TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            conn.commit()
+
+    def get_chat_history(self, session_id):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT user_input, assistant_output FROM chat_history
+                WHERE session_id = ?
+                ORDER BY timestamp ASC
+            ''', (session_id,))
+            rows = cursor.fetchall()
+            chat_history = []
+            for user_input, assistant_output in rows:
+                chat_history.append({"role": "user", "content": user_input})
+                chat_history.append({"role": "assistant", "content": assistant_output})
+            return chat_history
+
+    def save_chat_history(self, session_id, user_input, assistant_output):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO chat_history (session_id, user_input, assistant_output)
+                VALUES (?, ?, ?)
+            ''', (session_id, user_input, assistant_output))
+            conn.commit()
+
+# Initialize the database handler
+db_path = os.environ.get('SQLITE_DB_PATH', 'chat_history.db')
+sqlite_db = SQLiteDBHandler(db_path)
+
+
+------------------------------------------------
+
+------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/backend/utils/model_selector.py
 
 # backend/utils/model_selector.py
@@ -1558,6 +1609,8 @@ def create_chat_prompt():
                 2. The saved content should correctly represent the component, including any necessary imports, state management, and styling.
                 3. Use tailwindcss for styling.
                 4. Show the user the saved content in the response.
+                5. Use unslpash and other free stock image sites for images.
+                6. material-ui, antd, and chakra-ui are all installed and can be used.
                 '''
             ),
             MessagesPlaceholder(variable_name=MEMORY_KEY),
@@ -1566,72 +1619,6 @@ def create_chat_prompt():
         ]
     )
     return prompt
-
-
-------------------------------------------------
-
-------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/backend/src/App.tsx
-
-import React from 'react';
-import Slider from './Slider';
-
-const App: React.FC = () => {
-  const handleSliderChange = (value: number) => {
-    console.log('Slider value:', value);
-  };
-
-  return (
-    <div>
-      <h1>Slider Component</h1>
-      <Slider min={0} max={5} step={1} initialValue={0} onChange={handleSliderChange} />
-    </div>
-  );
-};
-
-export default App;
-
-
-------------------------------------------------
-
-------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/backend/src/Slider.tsx
-
-import React, { useState } from 'react';
-
-interface SliderProps {
-  min: number;
-  max: number;
-  step: number;
-  initialValue: number;
-  onChange: (value: number) => void;
-}
-
-const Slider: React.FC<SliderProps> = ({ min, max, step, initialValue, onChange }) => {
-  const [value, setValue] = useState(initialValue);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(event.target.value);
-    setValue(newValue);
-    onChange(newValue);
-  };
-
-  return (
-    <div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={handleChange}
-      />
-      <span>{value}</span>
-    </div>
-  );
-};
-
-export default Slider;
 
 
 ------------------------------------------------

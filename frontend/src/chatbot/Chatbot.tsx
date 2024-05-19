@@ -24,26 +24,34 @@ const Chatbot: React.FC = () => {
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [tools, setTools] = useState<string[]>([]);
   const [sessionID, setSessionID] = useState(() => {
-    const newSessionID = uuidv4();
-    console.log('Generated Session ID:', newSessionID);
-    return newSessionID;
+    const storedSessionID = localStorage.getItem('sessionID');
+    if (storedSessionID) {
+      return storedSessionID;
+    } else {
+      const newSessionID = uuidv4();
+      localStorage.setItem('sessionID', newSessionID);
+      return newSessionID;
+    }
   });
 
   useEffect(() => {
-    const fetchTools = async () => {
+    const fetchChatHistory = async () => {
       try {
-        const response = await fetch('http://localhost:8010/tools');
+        const response = await fetch(`http://localhost:8010/chat/history?session_id=${sessionID}`);
         if (response.ok) {
           const data = await response.json();
-          setSelectedTools(data.tools);
+          setMessages(data.chat_history.map((msg: any) => ({
+            isUser: msg.role === 'human',
+            text: msg.content,
+          })));
         }
       } catch (error) {
-        console.error('Error fetching tools:', error);
+        console.error('Error fetching chat history:', error);
       }
     };
 
-    fetchTools();
-  }, []);
+    fetchChatHistory();
+  }, [sessionID]);
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -61,10 +69,6 @@ const Chatbot: React.FC = () => {
     fetchTools();
   }, []);
 
-  const handleToolsChange = (newSelectedTools: string[]) => {
-    setSelectedTools(newSelectedTools);
-  };
-
   useEffect(() => {
     const fetchModels = async () => {
       try {
@@ -81,6 +85,10 @@ const Chatbot: React.FC = () => {
 
     fetchModels();
   }, []);
+
+  const handleToolsChange = (newSelectedTools: string[]) => {
+    setSelectedTools(newSelectedTools.length > 0 ? newSelectedTools : tools);
+  };
 
   const handleSubmit = async (inputValue: string) => {
     console.log('Sending Session ID:', sessionID);
@@ -100,7 +108,7 @@ const Chatbot: React.FC = () => {
             content: msg.text,
           })),
           model_id: selectedModel,
-          selected_tools: selectedTools,
+          selected_tools: selectedTools.length > 0 ? selectedTools : tools,
           session_id: sessionID,
         }),
       });
@@ -114,10 +122,6 @@ const Chatbot: React.FC = () => {
     }
     setIsThinking(false);
   };
-
-  useEffect(() => {
-    console.log('Component mounted with Session ID:', sessionID);
-  }, [sessionID]);
 
   const handleModelChange = (e: React.ChangeEvent<HTMLButtonElement>) => {
     setSelectedModel(e.target.value);
