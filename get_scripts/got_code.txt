@@ -1062,117 +1062,44 @@ export const Preview: React.FC<PreviewProps> = ({ onElementClick }) => {
 #/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx
 
 import React from 'react';
+import { FaStar } from 'react-icons/fa';
 
-const BlueCard: React.FC = () => {
+interface ProductCardProps {
+  image: string;
+  name: string;
+  description: string;
+  rating: number;
+  price: number;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ image, name, description, rating, price }) => {
   return (
-    <div className="max-w-sm rounded overflow-hidden shadow-lg bg-blue-500 text-white p-6">
-      <h1 className="text-xl font-bold mb-2">Blue Card</h1>
-      <p className="text-base">
-        This is a simple card component with a blue background. Blue is a calming color that represents stability and tranquility.
-      </p>
-    </div>
-  );
-};
-
-export default BlueCard;
-
-
-------------------------------------------------
-
-------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/keep/piechart.tsx
-
-import React from 'react';
-import { Pie } from 'react-chartjs-2';
-import 'chart.js/auto';
-
-const PieChart: React.FC = () => {
-  const data = {
-    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-    datasets: [
-      {
-        label: '# of Votes',
-        data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)',
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="w-1/2">
-        <Pie data={data} />
+    <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white">
+      <img className="w-full" src={image} alt={name} />
+      <div className="px-6 py-4">
+        <div className="font-bold text-xl mb-2">{name}</div>
+        <p className="text-gray-700 text-base">{description}</p>
+      </div>
+      <div className="px-6 pt-4 pb-2">
+        <div className="flex items-center">
+          {Array.from({ length: 5 }, (_, index) => (
+            <FaStar
+              key={index}
+              className={`h-5 w-5 ${index < rating ? 'text-yellow-500' : 'text-gray-300'}`}
+            />
+          ))}
+          <span className="ml-2 text-gray-600">{rating}/5</span>
+        </div>
+        <div className="mt-4 text-2xl font-bold">${price.toFixed(2)}</div>
+        <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Add to Cart
+        </button>
       </div>
     </div>
   );
 };
 
-export default PieChart;
-
-
-------------------------------------------------
-
-------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/keep/aussie_piechart.tsx
-
-import React from 'react';
-import { Pie } from 'react-chartjs-2';
-import 'chart.js/auto';
-
-const PieChart: React.FC = () => {
-  const data = {
-    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-    datasets: [
-      {
-        label: '# of Votes',
-        data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)',
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="w-1/2">
-        <Pie data={data} />
-      </div>
-    </div>
-  );
-};
-
-export default PieChart;
+export default ProductCard;
 
 
 ------------------------------------------------
@@ -1180,7 +1107,7 @@ export default PieChart;
 ------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/backend/app.py
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain.agents import AgentExecutor
@@ -1190,6 +1117,26 @@ from agents.create_agent import create_tools_agent
 from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
+import json
+import databases
+import sqlalchemy
+
+DATABASE_URL = "sqlite:///./test.db"
+
+database = databases.Database(DATABASE_URL)
+metadata = sqlalchemy.MetaData()
+
+chat_histories = sqlalchemy.Table(
+    "chat_histories",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("session_id", sqlalchemy.String, index=True),
+    sqlalchemy.Column("user_input", sqlalchemy.String),
+    sqlalchemy.Column("output", sqlalchemy.String)
+)
+
+engine = sqlalchemy.create_engine(DATABASE_URL)
+metadata.create_all(engine)
 
 app = FastAPI()
 
@@ -1208,6 +1155,7 @@ class ChatRequest(BaseModel):
     chat_history: list = []
     model_id: str
     selected_tools: list = []
+    session_id: str
 
 class FileSaveRequest(BaseModel):
     path: str
@@ -1216,15 +1164,25 @@ class FileSaveRequest(BaseModel):
 # Initialize Conversation Buffer Memory
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
+
 @app.post("/chat")
 async def chat(request: ChatRequest):
     user_input = request.input
     model_id = request.model_id
     selected_tools = request.selected_tools
+    session_id = request.session_id
 
-    # Use Langchain memory for conversation history
-    memory_variables = memory.load_memory_variables({})
-    chat_history = memory_variables.get("chat_history", [])
+    # Retrieve chat history from the database
+    query = chat_histories.select().where(chat_histories.c.session_id == session_id)
+    chat_history_records = await database.fetch_all(query)
+    chat_history = [{"input": record["user_input"], "output": record["output"]} for record in chat_history_records]
 
     llm = get_model(model_id)
     filtered_tools = [tool for tool in tools if tool.name in selected_tools]
@@ -1232,17 +1190,23 @@ async def chat(request: ChatRequest):
     agent = create_tools_agent(prompt, llm_with_tools)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
+    try:
+        result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
+    except json.decoder.JSONDecodeError as e:
+        return {"error": "Invalid JSON in arguments", "message": str(e)}
+    except Exception as e:
+        return {"error": str(e)}
 
-    # Save the conversation in the session
-    memory.save_context(
-        {"input": user_input},
-        {"output": result["output"]}
-    )
+    # Save the conversation in the database
+    query = chat_histories.insert().values(session_id=session_id, user_input=user_input, output=result["output"])
+    await database.execute(query)
+
+    # Update chat history with the new input and output
+    chat_history.append({"input": user_input, "output": result["output"]})
 
     return {
         "output": result["output"],
-        "chat_history": memory.load_memory_variables({}).get("chat_history", []),
+        "chat_history": chat_history,
     }
 
 @app.get("/models")
@@ -1425,18 +1389,29 @@ def create_chat_prompt():
         [
             (
                 "system",
-                '''You are a powerful React-TS TailwindCSS component generator. You have been tasked with creating a single component to be previewed by the user. You are expected to create a new React-TS component. The component must use React-TS, TailwindCSS be fully self-contained, and adhere to best practices.
-                
-                Use the provided add_component_to_preview tool to save and display the component to the user's web UI. Ensure the tool is invoked with the correct content and that the content is correctly formatted for a React-ts component with TailwindCSS.
+                '''You are a powerful React-TS component generator. You have been tasked with creating a single component to be previewed by the user. You are expected to create a new React-TS component that is fully self-contained and adheres to best practices. The component must:
 
-                You have access to the following tools:
-                - add_component_to_preview
+Use React with TypeScript
+Use TailwindCSS for styling
+Optionally utilize one or more of the following libraries if relevant:
 
-                Always ensure that:
-                1. The component code is valid and complete.
-                2. The saved content should correctly represent the component, including any necessary imports, state management, and styling.
-                3. Use tailwindcss for styling.
-                4. Show the user the saved content in the response.
+charts.js for data visualization
+unsplash for stock photos
+Ant Design, Material UI, or Chakra UI component libraries
+
+
+
+Use the provided add_component_to_preview tool to save and display the component to the user's web UI. Ensure the tool is invoked with the correct content and that the content is correctly formatted for a React-TS component with TailwindCSS.
+You have access to the following tools:
+
+add_component_to_preview
+
+Always ensure that:
+
+The component code is valid, complete, and self-contained, including any necessary imports.
+The saved content correctly represents the component, including state management and styling.
+TailwindCSS is used for styling. Additional component libraries like Ant Design, Material UI or Chakra UI may be used if relevant.
+Show the saved component content to the user.
                 '''
             ),
             MessagesPlaceholder(variable_name=MEMORY_KEY),
@@ -1445,72 +1420,6 @@ def create_chat_prompt():
         ]
     )
     return prompt
-
-
-------------------------------------------------
-
-------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/backend/src/App.tsx
-
-import React from 'react';
-import Slider from './Slider';
-
-const App: React.FC = () => {
-  const handleSliderChange = (value: number) => {
-    console.log('Slider value:', value);
-  };
-
-  return (
-    <div>
-      <h1>Slider Component</h1>
-      <Slider min={0} max={5} step={1} initialValue={0} onChange={handleSliderChange} />
-    </div>
-  );
-};
-
-export default App;
-
-
-------------------------------------------------
-
-------------------------------------------------
-#/Users/ron/Documents/projects/vite element highlighter/backend/src/Slider.tsx
-
-import React, { useState } from 'react';
-
-interface SliderProps {
-  min: number;
-  max: number;
-  step: number;
-  initialValue: number;
-  onChange: (value: number) => void;
-}
-
-const Slider: React.FC<SliderProps> = ({ min, max, step, initialValue, onChange }) => {
-  const [value, setValue] = useState(initialValue);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(event.target.value);
-    setValue(newValue);
-    onChange(newValue);
-  };
-
-  return (
-    <div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={handleChange}
-      />
-      <span>{value}</span>
-    </div>
-  );
-};
-
-export default Slider;
 
 
 ------------------------------------------------

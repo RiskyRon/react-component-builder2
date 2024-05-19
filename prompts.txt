@@ -1,0 +1,13 @@
+Create an interactive dashboard component. The dashboard should include:
+1. A navigation sidebar with links to different sections (e.g., Overview, Analytics, Reports).
+2. A top navigation bar with a search bar and user profile icon.
+3. An overview section displaying key metrics using cards.
+4. An analytics section with two charts: a line chart showing user growth over time and a bar chart showing monthly revenue.
+5. A reports section with a table displaying recent activities.
+
+The dashboard should be responsive and styled using TailwindCSS. Use Chart.js for the charts. The component should be fully self-contained and adhere to best practices.
+
+
+
+
+
