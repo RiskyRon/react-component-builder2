@@ -22,6 +22,6 @@ def find_and_save_files(root_dir, output_file, exclude_dirs):
 root_directory = '/Users/ron/Documents/projects/vite element highlighter'  # Adjust as needed
 target_files = ['.jsx', '.css', 'app.py']
 output_filename = 'got_code.txt'
-excluded_directories = ['venv', 'node_modules', 'testing', 'get_scripts']  # Add more as needed
+excluded_directories = ['venv', 'node_modules', 'testing', 'get_scripts', 'keep']  # Add more as needed
 
 find_and_save_files(root_directory, output_filename, excluded_directories)
