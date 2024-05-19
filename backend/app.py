@@ -11,8 +11,11 @@ from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
 from utils.sqlite_handler import SQLiteDBHandler
+from langchain.agents.format_scratchpad.openai_tools import format_to_openai_tool_messages
+from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
 import os
 import uuid
+import json
 
 app = FastAPI()
 
@@ -44,6 +47,22 @@ sqlite_db = SQLiteDBHandler(db_path)
 # Initialize Conversation Buffer Memory
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
+
+def create_tools_agent(prompt, llm_with_tools):
+    agent = (
+        {
+            "input": lambda x: x["input"],
+            "agent_scratchpad": lambda x: format_to_openai_tool_messages(
+                x["intermediate_steps"]
+            ),
+            "chat_history": lambda x: x["chat_history"],
+        }
+        | prompt
+        | llm_with_tools
+        | OpenAIToolsAgentOutputParser()
+    )
+    return agent
+
 @app.post("/chat")
 async def chat(request: ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
@@ -56,16 +75,24 @@ async def chat(request: ChatRequest):
 
     llm = get_model(model_id)
     filtered_tools = [tool for tool in tools if tool.name in selected_tools]
-    
-    # Ensure there is at least one tool
-    if not filtered_tools:
-        filtered_tools = tools  # or select some default tools
-
     llm_with_tools = llm.bind_tools(filtered_tools)
     agent = create_tools_agent(prompt, llm_with_tools)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
+    result = agent_executor.invoke({
+        "input": user_input,
+        "chat_history": chat_history
+    })
+
+    # Correcting the arguments to be valid JSON
+    if result.get("tool"):
+        tool_args = result["tool"]["arguments"]
+        if isinstance(tool_args, str):
+            try:
+                result["tool"]["arguments"] = json.loads(tool_args)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing tool arguments: {e}")
+                result["tool"]["arguments"] = {"error": "Invalid JSON in arguments"}
 
     # Save the conversation in SQLiteDB
     sqlite_db.save_chat_history(session_id, user_input, result["output"])
