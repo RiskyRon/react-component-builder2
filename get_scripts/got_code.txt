@@ -1062,33 +1062,69 @@ export const Preview: React.FC<PreviewProps> = ({ onElementClick }) => {
 #/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/NewComponent.tsx
 
 import React from 'react';
+import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement, ArcElement } from 'chart.js';
 
-const LandingPage: React.FC = () => {
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+  ArcElement
+);
+
+const data = {
+  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+  datasets: [
+    {
+      label: 'Dataset 1',
+      data: [65, 59, 80, 81, 56, 55, 40],
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 1,
+    },
+  ],
+};
+
+const pieData = {
+  labels: ['Red', 'Blue', 'Yellow'],
+  datasets: [
+    {
+      data: [300, 50, 100],
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+      hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+    },
+  ],
+};
+
+const Graphs: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
-      <header className="w-full py-6 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-center">
-        <h1 className="text-4xl font-bold">Neon Glow Sticks</h1>
-        <p className="mt-2 text-lg">Light up your festival with our bulk neon glow sticks!</p>
-      </header>
-      <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <section className="text-center">
-          <h2 className="text-3xl font-semibold mb-4">Why Choose Our Glow Sticks?</h2>
-          <p className="mb-6 max-w-2xl">
-            Our neon glow sticks are perfect for any festival, party, or event. They are bright, long-lasting, and come in a variety of vibrant colors. Make your night unforgettable with our high-quality glow sticks.
-          </p>
-          <button className="px-6 py-3 bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 rounded-full text-lg font-medium hover:opacity-90 transition-opacity">
-            Shop Now
-          </button>
-        </section>
-      </main>
-      <footer className="w-full py-4 bg-gray-800 text-center">
-        <p>&copy; 2023 Neon Glow Sticks. All rights reserved.</p>
-      </footer>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Bar Chart</h2>
+        <Bar data={data} />
+      </div>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Line Chart</h2>
+        <Line data={data} />
+      </div>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Pie Chart</h2>
+        <Pie data={pieData} />
+      </div>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Doughnut Chart</h2>
+        <Doughnut data={pieData} />
+      </div>
     </div>
   );
 };
 
-export default LandingPage;
+export default Graphs;
 
 
 ------------------------------------------------
@@ -1192,6 +1228,77 @@ export default PieChart;
 ------------------------------------------------
 
 ------------------------------------------------
+#/Users/ron/Documents/projects/vite element highlighter/frontend/src/components/keep/ForGraphs.tsx
+
+import React from 'react';
+import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement, ArcElement } from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+  ArcElement
+);
+
+const data = {
+  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+  datasets: [
+    {
+      label: 'Dataset 1',
+      data: [65, 59, 80, 81, 56, 55, 40],
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 1,
+    },
+  ],
+};
+
+const pieData = {
+  labels: ['Red', 'Blue', 'Yellow'],
+  datasets: [
+    {
+      data: [300, 50, 100],
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+      hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+    },
+  ],
+};
+
+const Graphs: React.FC = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Bar Chart</h2>
+        <Bar data={data} />
+      </div>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Line Chart</h2>
+        <Line data={data} />
+      </div>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Pie Chart</h2>
+        <Pie data={pieData} />
+      </div>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-bold mb-2">Doughnut Chart</h2>
+        <Doughnut data={pieData} />
+      </div>
+    </div>
+  );
+};
+
+export default Graphs;
+
+
+------------------------------------------------
+
+------------------------------------------------
 #/Users/ron/Documents/projects/vite element highlighter/backend/app.py
 
 from fastapi import FastAPI, Request
@@ -1199,14 +1306,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain.agents import AgentExecutor
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_community.chat_message_histories import RedisChatMessageHistory
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain.memory import ConversationBufferMemory
 from agents.create_agent import create_tools_agent
 from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
-import uuid
-import os
 
 app = FastAPI()
 
@@ -1230,9 +1334,8 @@ class FileSaveRequest(BaseModel):
     path: str
     content: str
 
-# Initialize Redis Chat History
-redis_url = "redis://localhost:6379/0"
-message_history = RedisChatMessageHistory(url=redis_url, ttl=3600, session_id="global-session")
+# Initialize Conversation Buffer Memory
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -1240,32 +1343,28 @@ async def chat(request: ChatRequest):
     model_id = request.model_id
     selected_tools = request.selected_tools
 
-    # Generate a unique session_id for the new conversation
-    session_id = str(uuid.uuid4())
-
-    # Create a new session for each conversation
-    chat_history = RedisChatMessageHistory(session_id=session_id)
+    # Use Langchain memory for conversation history
+    memory_variables = memory.load_memory_variables({})
+    chat_history = memory_variables.get("chat_history", [])
 
     llm = get_model(model_id)
-    filtered_tools = [tool for tool in tools if tool.name in request.selected_tools]
+    filtered_tools = [tool for tool in tools if tool.name in selected_tools]
     llm_with_tools = llm.bind_tools(filtered_tools)
     agent = create_tools_agent(prompt, llm_with_tools)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    # Convert RedisChatMessageHistory to a list of BaseMessage objects
-    base_messages = [m for m in chat_history.messages if isinstance(m, BaseMessage)]
-
-    result = agent_executor.invoke({"input": user_input, "chat_history": base_messages})
+    result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
 
     # Save the conversation in the session
-    chat_history.add_user_message(user_input)
-    chat_history.add_ai_message(result["output"])
+    memory.save_context(
+        {"input": user_input},
+        {"output": result["output"]}
+    )
 
     return {
         "output": result["output"],
-        "chat_history": chat_history.messages,
+        "chat_history": memory.load_memory_variables({}).get("chat_history", []),
     }
-
 
 @app.get("/models")
 async def get_models():
@@ -1396,8 +1495,9 @@ def create_tools_agent(prompt, llm_with_tools):
 
 #import tools here
 from tools.add_component_to_preview import add_component_to_preview
+from tools.tavily_search import tavily_search   
 
-tools = [add_component_to_preview]
+tools = [add_component_to_preview, tavily_search]
 
 
 ------------------------------------------------
