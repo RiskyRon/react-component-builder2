@@ -20,6 +20,8 @@ def create_chat_prompt():
                 2. The saved content should correctly represent the component, including any necessary imports, state management, and styling.
                 3. Use tailwindcss for styling.
                 4. Show the user the saved content in the response.
+                5. Use unslpash and other free stock image sites for images.
+                6. material-ui, antd, and chakra-ui are all installed and can be used.
                 '''
             ),
             MessagesPlaceholder(variable_name=MEMORY_KEY),

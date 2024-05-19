@@ -1,64 +1,53 @@
-import React from 'react';
-import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement, ArcElement } from 'chart.js';
+import React, { useState } from 'react';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement
-);
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-const data = {
-  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-  datasets: [
-    {
-      label: 'Dataset 1',
-      data: [65, 59, 80, 81, 56, 55, 40],
-      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      borderColor: 'rgba(75, 192, 192, 1)',
-      borderWidth: 1,
-    },
-  ],
-};
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle login logic here
+    console.log('Email:', email);
+    console.log('Password:', password);
+  };
 
-const pieData = {
-  labels: ['Red', 'Blue', 'Yellow'],
-  datasets: [
-    {
-      data: [300, 50, 100],
-      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-      hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-    },
-  ],
-};
-
-const Graphs: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Bar Chart</h2>
-        <Bar data={data} />
-      </div>
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Line Chart</h2>
-        <Line data={data} />
-      </div>
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Pie Chart</h2>
-        <Pie data={pieData} />
-      </div>
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-2">Doughnut Chart</h2>
-        <Doughnut data={pieData} />
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-gray-700">Email</label>
+            <input
+              type="email"
+              id="email"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-gray-700">Password</label>
+            <input
+              type="password"
+              id="password"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300"
+          >
+            Login
+          </button>
+        </form>
       </div>
     </div>
   );
 };
 
-export default Graphs;
+export default LoginPage;
