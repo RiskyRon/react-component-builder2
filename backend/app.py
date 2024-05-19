@@ -8,6 +8,7 @@ from agents.create_agent import create_tools_agent
 from prompts.default_chat_prompt import create_chat_prompt
 from utils.tool_list import tools
 from utils.model_selector import get_model
+import json
 
 app = FastAPI()
 
@@ -50,7 +51,12 @@ async def chat(request: ChatRequest):
     agent = create_tools_agent(prompt, llm_with_tools)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
+    try:
+        result = agent_executor.invoke({"input": user_input, "chat_history": chat_history})
+    except json.decoder.JSONDecodeError as e:
+        return {"error": "Invalid JSON in arguments", "message": str(e)}
+    except Exception as e:
+        return {"error": str(e)}
 
     # Save the conversation in the session
     memory.save_context(
@@ -62,6 +68,7 @@ async def chat(request: ChatRequest):
         "output": result["output"],
         "chat_history": memory.load_memory_variables({}).get("chat_history", []),
     }
+
 
 @app.get("/models")
 async def get_models():
